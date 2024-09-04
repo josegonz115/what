@@ -18,9 +18,7 @@ model = genai.GenerativeModel(
     system_instruction=system_instructions
 )
 
-
-
-def send_to_gemini_api(messages: Dict[str, List[str]]) -> Dict[str, str]:
+async def send_to_gemini_api(messages: Dict[str, List[str]]) -> Dict[str, str]:
     """
     Example function to send messages to the Google Gemini model API.
         example output:
@@ -29,13 +27,21 @@ def send_to_gemini_api(messages: Dict[str, List[str]]) -> Dict[str, str]:
             "random": "The 'random' channel focused on a recent sports game, with users discussing the outcome and their reactions. User5 and user6 shared their excitement about the game's intensity and the close final score. User7 expressed regret for missing the game and user5 provided details about the home team's overtime win."
         }
     """
-    response = model.generate_content(create_prompt(messages))
-    cleaned_response = response.text.strip().strip('```').strip('json').strip('\n')
-    summary_dict:Dict[str, str] = json.loads(cleaned_response)
-    return summary_dict
+    try:
+        response = model.generate_content(create_prompt(messages))
+        # Check if the response has valid content before processing
+        if not response or not response.text:
+            raise ValueError("Received empty or invalid response from Google Gemini API")
+        cleaned_response = response.text.strip().strip('```').strip('json').strip('\n')
+        summary_dict: Dict[str, str] = json.loads(cleaned_response)
+        return summary_dict
+    except json.JSONDecodeError as e:
+        print(f"Failed to decode JSON. Response: {response.text}, Error: {str(e)}")
+        raise ValueError("Failed to parse the JSON response from the API.")
 
 
 def create_prompt(messages_dict: Dict[str, List[str]]) -> str:
+    print(messages_dict)
     prompt = "Here are chat histories from various channels. Please summarize the conversations in each channel and provide the output as a JSON object.\n\n"
     for channel, messages in messages_dict.items():
         prompt += f"# {channel}\n"
@@ -46,5 +52,5 @@ def create_prompt(messages_dict: Dict[str, List[str]]) -> str:
     for channel in messages_dict.keys():
         prompt += f'    "{channel}": "Summary of the {channel} channel...",\n'
     prompt += "}\n"
-    
+    print(f"Generated prompt: {prompt}")
     return prompt

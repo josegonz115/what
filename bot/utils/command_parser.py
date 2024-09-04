@@ -22,7 +22,8 @@ def handle_what_logic_no_time(message: message):
     from_pattern = r'\bfrom\b\s+([a-zA-Z0-9\+\-_]+(?:\s+[a-zA-Z0-9\+\-_]+)*)'
     full_pattern = rf'^!what\b.*{from_pattern}'
     match = re.search(full_pattern, message.content, re.IGNORECASE)
-    users = [message.author] # Default to the author
+    users = [user.display_name for user in message.guild.members if not user.bot]
+    message_string = None
     if match:
         names = match.group(1).strip()
         names_strs = names.split()
@@ -30,17 +31,16 @@ def handle_what_logic_no_time(message: message):
             raise ValueError('One or more users do not exist in the server.')
         else:
             users = names_strs
-            message = f'You asked about {names} in {message.channel}!'
+            message_string = f'You asked about {names} in {message.channel}!'
     elif message.content == '!what':
-        users = [user for user in message.guild.members if not user.bot]
-        message = f'You asked about everyone in {message.channel}!'
+        message_string = f'You asked about everyone in {message.channel}!'
     else:
         raise ValueError('Did not catch that, ask again')
     return WhatLogicResult(
-        message=message, 
+        message=message_string, 
         users=users, 
-        channel_name=message.channel, 
-        since_time=message.reference.created_at
+        channel_name=message.channel.name,
+        since_time=message.reference.resolved.created_at
     )
 
 
@@ -50,8 +50,7 @@ def handle_what_logic(message: message, is_channel=False):
     full_pattern = rf'^!what\b.*{time_pattern}.*{from_pattern}'
     match = re.search(full_pattern, message.content, re.IGNORECASE)
     only_time_match = re.search(rf'^!what\b.*{time_pattern}', message.content, re.IGNORECASE)
-    users = None
-    # figure out if since_time works
+    users = [user.display_name for user in message.guild.members if not user.bot]
     if match:
         time_period = since_time = match.group(1)
         names = match.group(5).strip()
@@ -60,22 +59,22 @@ def handle_what_logic(message: message, is_channel=False):
             raise ValueError('One or more users do not exist in the server.')
         users = names_str
         if is_channel:
-            message = f'You asked about {time_period} from {names} in {message.channel_name}!'
+            message_string = f'You asked about {time_period} from {names} in {message.channel}!'
         else:
-            message = f'You asked about {time_period} from {names}!'
+            message_string = f'You asked about {time_period} from {names}!'
     elif only_time_match:
         time_period = since_time = only_time_match.group(1)
         if is_channel:
-            message = f'You asked about {time_period} from everyone in {message.channel_name}!'
+            message_string = f'You asked about {time_period} from everyone in {message.channel}!'
         else:
-            message = f'You asked about {time_period} from everyone!'
+            message_string = f'You asked about {time_period} from everyone!'
     else:
         raise ValueError('Did not catch that, ask again')
         
     return WhatLogicResult(
-        message=message,
+        message=message_string,
         users=users,
-        channel_name= message.channel_name if is_channel else None,
+        channel_name= message.channel.name if is_channel else None,
         since_time=since_time
     )
 

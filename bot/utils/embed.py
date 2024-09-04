@@ -15,7 +15,7 @@ def embed_summary(message: message, summaries: Dict[str, str]) -> Embed:
     :param summaries: A dictionary where the keys are channel names and the values are summaries of those channels.
     :return: A Discord Embed object that can be sent as a reply or message.
     """
-    usernames = [member.display_name for member in message.guild.members]
+    usernames = [member.display_name for member in message.guild.members if not member.bot]
     embed = Embed(
         title="Conversation Summaries",
         description="Here are the summaries of recent conversations in the specified channels:",
@@ -24,12 +24,21 @@ def embed_summary(message: message, summaries: Dict[str, str]) -> Embed:
     
     for channel_name, summary in summaries.items():
         for username in usernames:
-            summary = summary.replace(username, f"**{username}**")
-        embed.add_field(
-            name=f"#{channel_name}",
-            value=summary,
-            inline=False  
-        )
+            summary = summary.replace(username, f"`{username}`")
+        if len(summary) > 1000:
+            for i in range(0, len(summary), 1000):
+                chunk = summary[i:i + 1000]
+                embed.add_field(
+                    name=f"#{channel_name}" if i == 0 else f"#{channel_name} (cont'd)",
+                    value=chunk,
+                    inline=False
+                )
+        else:
+            embed.add_field(
+                name=f"#{channel_name}",
+                value=summary,
+                inline=False
+            )
     embed.set_footer(text=f"Requested by {message.author.display_name}", icon_url=message.author.avatar)
     return embed
 
