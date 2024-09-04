@@ -2,7 +2,8 @@ from typing import Dict, List
 import google.generativeai as genai
 import os
 import json
-
+from dotenv import load_dotenv
+load_dotenv('../../.env')
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 system_instructions = """
