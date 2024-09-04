@@ -2,6 +2,7 @@ from typing import Dict, List
 import google.generativeai as genai
 import json
 from dotenv import load_dotenv
+import os
 base_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(base_dir, '.env'))
 import os
