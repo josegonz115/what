@@ -1,7 +1,8 @@
 from discord import Client, message, Intents
 import os
 from dotenv import load_dotenv
-load_dotenv('../.env')
+base_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(base_dir, '.env'))
 token = os.getenv('DISCORD_TOKEN')
 import logging
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')

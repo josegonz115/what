@@ -2,7 +2,8 @@ from typing import Dict, List
 import google.generativeai as genai
 import json
 from dotenv import load_dotenv
-load_dotenv('../../.env')
+base_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(base_dir, '.env'))
 import os
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
