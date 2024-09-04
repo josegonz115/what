@@ -3,4 +3,4 @@ notes.md
 .venv
 *.log
 __pycache__
-
+venv

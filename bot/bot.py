@@ -1,5 +1,7 @@
 from discord import Client, message, Intents
 import os
+from dotenv import load_dotenv
+load_dotenv('../.env')
 token = os.getenv('DISCORD_TOKEN')
 import logging
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
