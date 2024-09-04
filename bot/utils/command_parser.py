@@ -4,7 +4,6 @@ from typing import TypedDict, List, Optional
 from datetime import datetime
 
 def check_if_users_exist(message: message, users: list[str]) -> bool:
-    # print([member.display_name for member in message.guild.members])  # Debug
     for user in users:
         if not any(user.lower() == member.display_name.lower() and not member.bot for member in message.guild.members):
             return False

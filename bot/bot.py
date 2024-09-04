@@ -40,20 +40,13 @@ class MyClient(Client):
                     what_dict = handle_what_logic(message, is_channel=True)
                 elif has_reference:
                     what_dict = handle_what_logic_no_time(message)
-                    print(what_dict)
                 else:
                     what_dict = handle_what_logic(message)
-                # reply to the message with what_dict.message
                 await message.reply(what_dict['message'], mention_author=True)
-                # process messages and send to Gemini API
-                print('what_dict', what_dict)#TESTING
                 messages_dict = await read_messages(message, what_dict)
-                print('messages_dict', messages_dict)#TESTING
                 gemini_response = await send_to_gemini_api(messages_dict)
                 embed = embed_summary(message, gemini_response)
-                # send embedding to the channel
                 await message.channel.send(embed=embed)
-
         except ValueError as e:
             await message.reply(f'An error occurred: {str(e)}', mention_author=True)
 

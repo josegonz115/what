@@ -33,7 +33,9 @@ async def send_to_gemini_api(messages: Dict[str, List[str]]) -> Dict[str, str]:
         if not response or not response.text:
             raise ValueError("Received empty or invalid response from Google Gemini API")
         cleaned_response = response.text.strip().strip('```').strip('json').strip('\n')
-        summary_dict: Dict[str, str] = json.loads(cleaned_response)
+        expected_channels = list(messages.keys())
+        summary_dict = clean_response(cleaned_response, expected_channels)
+        # summary_dict: Dict[str, str] = json.loads(cleaned_response)
         return summary_dict
     except json.JSONDecodeError as e:
         print(f"Failed to decode JSON. Response: {response.text}, Error: {str(e)}")
@@ -41,16 +43,26 @@ async def send_to_gemini_api(messages: Dict[str, List[str]]) -> Dict[str, str]:
 
 
 def create_prompt(messages_dict: Dict[str, List[str]]) -> str:
-    print(messages_dict)
-    prompt = "Here are chat histories from various channels. Please summarize the conversations in each channel and provide the output as a JSON object.\n\n"
+    prompt = "Here are chat histories for each channel. Please summarize the conversations and provide the output as a JSON object with only the following channel names:\n\n"
+    prompt += "{\n"
+    for channel in messages_dict.keys():
+        prompt += f'    "{channel}": "Summary of the {channel} channel...",\n'
+    prompt += "}\n\n"
+    prompt += "Here are the chat histories for each channel:\n\n"
     for channel, messages in messages_dict.items():
         prompt += f"# {channel}\n"
         prompt += "\n".join(messages)
         prompt += "\n\n"
-    prompt += "Please provide the summary in the following JSON format:\n"
-    prompt += "{\n"
-    for channel in messages_dict.keys():
-        prompt += f'    "{channel}": "Summary of the {channel} channel...",\n'
-    prompt += "}\n"
-    print(f"Generated prompt: {prompt}")
     return prompt
+
+def clean_response(response: str, expected_channels: List[str]) -> Dict[str, str]:
+    """
+    Cleans up the response to ensure it only contains the expected channels as keys.
+    """
+    try:
+        summary_dict = json.loads(response)
+        cleaned_summary = {channel: summary_dict.get(channel, "") for channel in expected_channels}
+        return cleaned_summary
+    except json.JSONDecodeError as e:
+        print(f"Failed to decode JSON. Response: {response}, Error: {str(e)}")
+        raise ValueError("Failed to parse the JSON response from the API.")
