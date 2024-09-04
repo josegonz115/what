@@ -1,0 +1,6 @@
+.env
+notes.md
+.venv
+*.log
+__pycache__
+
